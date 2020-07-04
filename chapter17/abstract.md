@@ -46,3 +46,5 @@ libcontainer.New()
 ```
 のところで、 `Unresolved reference 'New'` となる。
 [参照元を見る](https://github.com/opencontainers/runc/blob/2c632d1a2de0192c3f18a2542ccb6f30a8719b1f/libcontainer/init_linux.go)と、 `go get` する時にLinuxでしかインストールされないっぽい。
+
+Dockerコンテナがない

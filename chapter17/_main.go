@@ -1,3 +1,5 @@
+// +build linux
+
 package main
 
 import (
@@ -30,74 +32,97 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	capabilities := []string{ "CAP_CHOWN",
-		"CAP_DAC_OVERRIDE", "CAP_FSETID", "CAP_FOWNER", "CAP_MKNOD", "CAP_NET_RAW", "CAP_SETGID", "CAP_SETUID", "CAP_SETFCAP", "CAP_SETPCAP", "CAP_NET_BIND_SERVICE", "CAP_SYS_CHROOT", "CAP_KILL", "CAP_AUDIT_WRITE",
+	capabilities := []string{
+		"CAP_CHOWN",
+		"CAP_DAC_OVERRIDE",
+		"CAP_FSETID",
+		"CAP_FOWNER",
+		"CAP_MKNOD",
+		"CAP_NET_RAW",
+		"CAP_SETGID",
+		"CAP_SETUID",
+		"CAP_SETFCAP",
+		"CAP_SETPCAP",
+		"CAP_NET_BIND_SERVICE",
+		"CAP_SYS_CHROOT",
+		"CAP_KILL",
+		"CAP_AUDIT_WRITE",
 	}
-	defaultMountFlags := unix.MS_NOEXEC | unix.MS_NOSUID | unix.MS_NODEV config := &configs.Config{
-		Rootfs: abs+"/rootfs", Capabilities: &configs.Capabilities{
-			Bounding: capabilities, Effective: capabilities, Inheritable: capabilities, Permitted: capabilities, Ambient: capabilities,
+	defaultMountFlags := unix.MS_NOEXEC | unix.MS_NOSUID | unix.MS_NODEV
+	config := &configs.Config{
+		Rootfs: abs + "/rootfs", Capabilities: &configs.Capabilities{
+			Bounding:    capabilities,
+			Effective:   capabilities,
+			Inheritable: capabilities,
+			Permitted:   capabilities,
+			Ambient:     capabilities,
 		},
 		Namespaces: configs.Namespaces([]configs.Namespace{
-			{Type: configs.NEWNS}, {Type: configs.NEWUTS}, {Type: configs.NEWIPC}, {Type: configs.NEWPID}, {Type: configs.NEWNET},
+			{Type: configs.NEWNS},
+			{Type: configs.NEWUTS},
+			{Type: configs.NEWIPC},
+			{Type: configs.NEWPID},
+			{Type: configs.NEWNET},
 		}),
 		Cgroups: &configs.Cgroup{
 			Name: "test-container", Parent: "system",
 			Resources: &configs.Resources{
 				MemorySwappiness: nil,
-				AllowAllDevices: nil,
-				AllowedDevices: configs.DefaultAllowedDevices,
+				AllowAllDevices:  nil,
+				AllowedDevices:   configs.DefaultAllowedDevices,
 			},
 		},
 		MaskPaths: []string{
-			"/proc/kcore", "/sys/firmware", },
+			"/proc/kcore", "/sys/firmware",},
 		ReadonlyPaths: []string{
 			"/proc/sys", "/proc/sysrq-trigger", "/proc/irq", "/proc/bus",
 		},
-		Devices: configs.DefaultAutoCreatedDevices, Hostname: "testing",
+		Devices:  configs.DefaultAutoCreatedDevices,
+		Hostname: "testing",
 		Mounts: []*configs.Mount{
 			{
-				Source: "proc",
+				Source:      "proc",
 				Destination: "/proc",
-				Device: "proc",
-				Flags: defaultMountFlags,
+				Device:      "proc",
+				Flags:       defaultMountFlags,
 			},
 			{
-				Source: "tmpfs",
+				Source:      "tmpfs",
 				Destination: "/dev",
-				Device: "tmpfs",
-				Flags: unix.MS_NOSUID | unix.MS_STRIDTATIME,
-				Data: "mode=755",
+				Device:      "tmpfs",
+				Flags:       unix.MS_NOSUID | unix.MS_STRIDTATIME,
+				Data:        "mode=755",
 			},
 			{
-				Source: "devpts",
+				Source:      "devpts",
 				Destination: "/dev/pts",
-				Device: "devpts",
-				Flags: unix.MS_NOSUID | unix.MS_STRIDTATIME,
-				Data: "newinstance,ptmxmode=0666,mode=0620,gid=5",
+				Device:      "devpts",
+				Flags:       unix.MS_NOSUID | unix.MS_STRIDTATIME,
+				Data:        "newinstance,ptmxmode=0666,mode=0620,gid=5",
 			},
 			{
-				Source: "tmpfs",
+				Source:      "tmpfs",
 				Destination: "shm",
-				Device: "/dev/shm",
-				Flags: defaultMountFlags,
-				Data: "ptmxmode=1777,size=65536K",
+				Device:      "/dev/shm",
+				Flags:       defaultMountFlags,
+				Data:        "ptmxmode=1777,size=65536K",
 			},
 			{
-				Source: "mqueue",
+				Source:      "mqueue",
 				Destination: "/dev/mqueue",
-				Device: "mqueue",
-				Flags: defaultMountFlags,
+				Device:      "mqueue",
+				Flags:       defaultMountFlags,
 			},
 			{
-				Source: "sysfs",
+				Source:      "sysfs",
 				Destination: "/sys",
-				Device: "sysfs",
-				Flags: defaultMountFlags | unix.MS_RDONLY,
+				Device:      "sysfs",
+				Flags:       defaultMountFlags | unix.MS_RDONLY,
 			},
 		},
 		Networks: []*configs.Network{
 			{
-				Type: "loopback",
+				Type:    "loopback",
 				Address: "127.0.0.1/0",
 				Gateway: "localhost",
 			},
@@ -116,12 +141,12 @@ func main() {
 		return
 	}
 	process := &libcontainer.Process{
-		Args:            []string{"/bin/sh"},
-		Env:             []string{"PATH=/bin"},
-		User:            "root",
-		Stdin:           os.Stdin,
-		Stdout:          os.Stdout,
-		Stderr:          os.Stderr,
+		Args:   []string{"/bin/sh"},
+		Env:    []string{"PATH=/bin"},
+		User:   "root",
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
 	}
 	err = container.Run(process)
 	if err != nil {
